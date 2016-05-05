@@ -3,6 +3,12 @@
 int main(int argc, char const **argv) {
     bool run = true;
 
+    shl_shareMemoryInit();
+
+    shl_shareMemorySet("Test");
+
+    shl_shareMemoryGet();
+
     shl();
 
     return 0;
@@ -16,12 +22,85 @@ void shl(){
         printf("%s", crumbshell);
         line = input();
         args = parse(line);
-        shl_launcher(args);
+        shl_execute(args);
 
         free(line);
         free(args);
     }
 }
+
+void shl_shareMemoryInit(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, IPC_CREAT | 0666)) < 0){
+        perror("Error creating SHM segment.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    else
+        printf("\nSHM segment has been created.\n");
+}
+
+void shl_shareMemorySet(char * toShare){
+    int shm_ID = 0;
+    void *pointer = NULL;
+
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0666)) < 0)
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+    else
+        printf("\nSHM segment has been found.\n");
+
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL){
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    else
+        printf("Allocating SHM to my address space.\n");
+    printf("Copying message into shaged memory...\n");
+    memcpy(pointer, toShare, strlen(toShare) + 1);
+
+    if (shmdt(pointer) < 0){
+        perror("Error deallocating shared memory.");
+        exit(-1);
+    }
+    else
+        printf("SHM has been deallocated.\n");
+}
+
+void shl_shareMemoryGet(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0444)) < 0 )
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+    else
+        printf("\nSHM segment has been found.\n");
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL)
+    {
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    else
+        printf("Allocating SHM to my address space.\n");
+
+    printf("Fetching message from shared memory:\n");
+    sprintf("\n%s\n", (char*) pointer);
+    if (shmdt(pointer) < 0)
+    {
+        perror("Error deallocating shared memory.");
+        exit(-1);
+    }
+    else
+        printf("SHM has been deallovated.\n");
+
+}
+
 
 char *input(){
     char *line = NULL;
@@ -67,7 +146,7 @@ int shl_launcher(char **args){
     pid = fork();
     if (pid == 0){
         //child
-        if (execvp(args[0], args) == -1){
+        if (execv(args[0], args) == -1){
             perror("shl");
         }
         exit(EXIT_FAILURE);
@@ -79,18 +158,6 @@ int shl_launcher(char **args){
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-    }
-    return 1;
-}
-
-int shl_cd(char **args)
-{
-    if (args[1] == NULL) {
-        printf("shl: expected argument to \"cd\"\n");
-    } else {
-        if (chdir(args[1]) != 0) {
-            perror("shl");
-        }
     }
     return 1;
 }
@@ -108,7 +175,7 @@ int shl_help(char **args){
 }
 
 int shl_exit(char **args){
-    return 0;
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -127,109 +194,3 @@ int shl_execute(char **args) {
 
     return shl_launcher(args);
 }
-/*
-bool input(){
-
-    char *quit = "exit";
-    char *pbs = "pbs";
-    char *pfe = "pfe";
-    char *clear = "clear";
-    char *crumb = "crumbshell";
-    int rc;
-    char cmd[20];
-    enum CMD command = NA;
-
-    bool ret;
-    printf("%s", crumbshell);
-
-    scanf("%s", cmd);
-
-    rc = strcmp(cmd, quit);
-    if (rc == 0)
-    {
-        command = EXIT;
-    }
-
-    rc = strcmp(cmd, pbs);
-    if (rc == 0)
-    {
-        command = PBS;
-    }
-
-    rc = strcmp(cmd, pfe);
-    if (rc == 0)
-    {
-        command = PBS;
-    }
-
-    rc = strcmp(cmd, clear);
-    if (rc == 0)
-    {
-        command = CLEAR;
-    }
-
-    rc = strcmp(cmd, crumb);
-    if (rc == 0)
-    {
-        command = CRUMB;
-    }
-
-    ret = runcmd(command, cmd);
-
-    return ret;
-}
-*/
-
-//bool runcmd(enum CMD cmd, char* str){
-//
-//    bool ret = true;
-//    pid_t pid;
-//
-//    switch (cmd) {
-//        case EXIT:
-//            printf("Good bye\n");
-//            ret = false;
-//            break;
-//        case PBS:
-//            pid=fork();
-//            if (pid==0) { /* child process */
-//                static char *argv[]={NULL};
-//                execv("./pbs",argv);
-//                exit(127); /* only if execv fails */
-//            }
-//            else { /* pid!=0; parent process */
-//                waitpid(pid,0,0); /* wait for child to exit */
-//            }
-//        case PFE:
-//            pid=fork();
-//            if (pid==0) { /* child process */
-//                static char *argv[]={NULL};
-//                execv("./pfe",argv);
-//                exit(127); /* only if execv fails */
-//            }
-//            else { /* pid!=0; parent process */
-//                waitpid(pid,0,0); /* wait for child to exit */
-//            }
-//            break;
-//        case CLEAR:
-//            system( "clear");
-//            break;
-//        case CRUMB:
-//            pid=fork();
-//            if (pid==0) { /* child process */
-//                static char *argv[]={NULL};
-//                execv("./crumbshell",argv);
-//                exit(127); /* only if execv fails */
-//            }
-//            else { /* pid!=0; parent process */
-//                waitpid(pid,0,0); /* wait for child to exit */
-//            }
-//            break;
-//        case NA:
-//        default:
-//            printf("[%s] is an invalid input\n", str);
-//            break;
-//    }
-//    return ret;
-//
-//}

@@ -5,7 +5,7 @@ CFLAGS += -Wall -pedantic -I include/
 LDFLAGS += -L ./
 LDLIBS +=
 
-OUT = $(wildcard )
+OUT = crumbshell
 SRC = $(wildcard *.cpp)
 OBJ = $(addprefix obj/,$(SRC:.cpp=.o))
 
@@ -13,6 +13,9 @@ all: $(OUT)
 
 clean:
 	rm -f $(OBJ) $(OUT)
+
+run:
+	./crumbshell
 
 CRUMBSHELL_SRC = crumbshell.c
 CRUMBSHELL_OBJ = $(addprefix obj/,$(CRUMBSHELL_SRC:.c=.o))
