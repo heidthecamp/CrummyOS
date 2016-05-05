@@ -46,13 +46,11 @@ const int shl_in_bufsize = 1024;
 const int shl_tok_bufsize = 64;
 
 
-void setSharedMemory(){
-}
-
 void shl();
 void shl_shareMemoryInit();
 void shl_shareMemoryGet();
 void shl_shareMemorySet();
+void printMem();
 char *input();
 char **parse(char *line);
 int shl_launcher(char **);

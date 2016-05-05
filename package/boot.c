@@ -33,16 +33,11 @@ void shl_shareMemorySet(){
         perror("Error getting SHM segment.");
         exit(-1);
     }
-    else
-        printf("\nSHM segment has been found.\n");
 
     if ((pointer = shmat(shm_ID, NULL, 0)) == NULL){
         perror("Error including SHM address space.");
         exit(0);
     }
-    else
-        printf("Allocating SHM to my address space.\n");
-    printf("Copying message into shaged memory...\n");
     memcpy(pointer, &shrmem, sizeof(struct SharedMemory));
 
 }
@@ -104,8 +99,9 @@ int main(int argc, char const **argv) {
         mode = argv[2];
     }
 
+    shrmem.mode = mode;
     //memcpy(shrmem.fileSysTyp, buf + 54, 8);
-    memcpy(&shrmem.mode, &mode, sizeof(char *));
+//    memcpy(&shrmem.mode, &mode, (strlen(mode) * sizeof(char *)));
     FILE_SYSTEM_ID = fopen(file, mode);
     setFSID(FILE_SYSTEM_ID);
 
@@ -148,6 +144,8 @@ int main(int argc, char const **argv) {
     shrmem.fildes = fileno(FILE_SYSTEM_ID);
 
     shl_shareMemorySet();
+
+    fclose(FILE_SYSTEM_ID);
 
     return 0;
 }

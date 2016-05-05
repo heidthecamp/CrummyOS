@@ -9,12 +9,12 @@ OUT = crumbshell
 SRC = $(wildcard *.cpp)
 OBJ = $(addprefix obj/,$(SRC:.cpp=.o))
 
-all: $(OUT)
+all: crumbshell pbs pfe boot
 
 clean:
 	rm -f $(OBJ) $(OUT)
 
-run:
+run: all
 	./crumbshell
 
 CRUMBSHELL_SRC = crumbshell.c

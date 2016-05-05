@@ -1,14 +1,12 @@
 #include "crumbshell.h"
 
 int main(int argc, char const **argv) {
-    bool run = true;
-
 
     shl_shareMemoryInit();
 
     shl_shareMemorySet(shrmem);
 
-    printMem(shrmem);
+    //printMem();
 
     shl();
 
@@ -18,7 +16,7 @@ int main(int argc, char const **argv) {
 }
 
 
-printMem()
+void printMem()
 {
 //    int fildes;
     printf("%i\n", shrmem.fildes);
@@ -52,14 +50,14 @@ printMem()
     printf("Bytes sector: %s\n", shrmem.volLabel);
 //    char fileSysTyp[9];
     printf("Bytes sector: %s\n", shrmem.fileSysTyp);
+    return;
 }
 
 
 void shl(){
     char *line;
     char **args;
-    bool run = true;
-    while (run) {
+    while (1) {
         printf("%s", crumbshell);
         line = input();
         args = parse(line);
@@ -70,13 +68,13 @@ void shl(){
 
         shl_shareMemoryGet();
 
-        printMem(shrmem);
+        /* FOR TESTING ONLY */
+        //printMem(shrmem);
     }
 }
 
 void shl_shareMemoryInit(){
     int shm_ID = 0;
-    void *pointer = NULL;
 
     if ((shm_ID = shmget(SHMKEY, SHMSIZE, IPC_CREAT | 0666)) < 0){
         perror("Error creating SHM segment.\n");
@@ -156,7 +154,7 @@ void shl_shareMemoryGet(){
 
 char *input(){
     char *line = NULL;
-    ssize_t bufsize = 0;
+    size_t bufsize = 0;
     getline(&line, &bufsize, stdin);
     return line;
 }
@@ -167,7 +165,7 @@ char **parse(char *line){
     char *token;
 
     if (!tokens){
-        printf(stderr, "SHL: allocation error\n" );
+        fprintf(stderr, "SHL: allocation error\n" );
         exit(EXIT_FAILURE);
     }
 
@@ -180,7 +178,7 @@ char **parse(char *line){
             bufsize += shl_tok_bufsize;
             tokens = realloc(tokens, bufsize * sizeof(char*));
             if (!tokens) {
-                printf(stderr, "SHL: allocation error\n" );
+                fprintf(stderr, "SHL: allocation error\n" );
                 exit(EXIT_FAILURE);
             }
         }
