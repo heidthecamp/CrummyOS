@@ -16,7 +16,7 @@
 struct SharedMemory
 {
     int fildes;
-    char * mode;
+    char mode[3];
     int bytesPerSector;
     int sectorsPerCluster;
     int numResSector;

@@ -13,7 +13,7 @@ FILE * FILE_SYSTEM_ID;
 
 typedef struct SharedMemory{
     int fildes;
-    char * mode;
+    char mode[3];
     int bytesPerSector;
     int sectorsPerCluster;
     int numResSector;

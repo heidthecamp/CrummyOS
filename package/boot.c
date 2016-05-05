@@ -80,8 +80,8 @@ int getByte( unsigned char* buf, int index ){
 
 int main(int argc, char const **argv) {
 
-    char * file;
-    char * mode;
+    char file[120];
+    char mode [3];
 
     if (argv[1] == NULL)
     {
@@ -89,17 +89,18 @@ int main(int argc, char const **argv) {
         exit(EXIT_FAILURE);
     } else
     {
-        file = argv[1];
+        strcpy(file, argv[1]);
     }
 
     if (argv[2] == NULL) {
-        mode = "r";
+        strcpy(mode, "r");
     } else
     {
-        mode = argv[2];
+        strcpy(mode, argv[2]);
     }
 
-    shrmem.mode = mode;
+    //memcpy(shrmem.fileSysTyp, buf + 54, 8);
+    memcpy(&shrmem.mode, &mode, 2);
     //memcpy(shrmem.fileSysTyp, buf + 54, 8);
 //    memcpy(&shrmem.mode, &mode, (strlen(mode) * sizeof(char *)));
     FILE_SYSTEM_ID = fopen(file, mode);
