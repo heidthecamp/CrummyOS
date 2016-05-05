@@ -1,9 +1,47 @@
 #include "pbs.h"
-#include "boot.h"
+#include <unistd.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+void shl_shareMemoryGet(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0444)) < 0 )
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL)
+    {
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    memcpy(&shrmem, pointer, sizeof(struct SharedMemory));
+
+}
+
+
+void shl_shareMemorySet(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0666)) < 0)
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL){
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    memcpy(pointer, &shrmem, sizeof(struct SharedMemory));
+
+}
 
 
 int main( int argc, char **argv ){
-
+    /*
     boot_t boot;
 	// You must set two global variables for the disk access functions:
 	//      FILE_SYSTEM_ID         BYTES_PER_SECTOR
@@ -26,22 +64,23 @@ int main( int argc, char **argv ){
 	// Then reset it per the value in the boot sector
 
 
-    boot = readBootSector();
+    //boot = readBootSector();
+*/
+    shl_shareMemoryGet();
 
-
-    printf("Bytes per Sector           = %d\n", boot.bytesPerSector);
-    printf("Sectors per cluster        = %d\n", boot.sectorsPerCluster);
-    printf("Number of FATs             = %d\n", boot.numFat);
-    printf("Number of reserved sectors = %d\n", boot.numResSector);
-    printf("Number of root entries     = %d\n", boot.maxRootDirEnt);
-    printf("Total sector count         = %d\n", boot.totSectCount);
-    printf("Sectors pre FAT            = %d\n", boot.sectPerFat);
-    printf("Sectors per track          = %d\n", boot.sectPerTrack);\
-    printf("Number of heads            = %d\n", boot.totSectCount4Fat);
-    printf("Boot signature             = 0x%.8x\n", boot.bootSig);
-    printf("Volume ID                  = 0x%.8x\n", boot.volID);
-    printf("Volume label               = %s\n", boot.volLabel);
-    printf("File system type           = %s\n", boot.fileSysTyp);
+    printf("Bytes per Sector           = %d\n", shrmem.bytesPerSector);
+    printf("Sectors per cluster        = %d\n", shrmem.sectorsPerCluster);
+    printf("Number of FATs             = %d\n", shrmem.numFat);
+    printf("Number of reserved sectors = %d\n", shrmem.numResSector);
+    printf("Number of root entries     = %d\n", shrmem.maxRootDirEnt);
+    printf("Total sector count         = %d\n", shrmem.totSectCount);
+    printf("Sectors pre FAT            = %d\n", shrmem.sectPerFat);
+    printf("Sectors per track          = %d\n", shrmem.sectPerTrack);\
+    printf("Number of heads            = %d\n", shrmem.totSectCount4Fat);
+    printf("Boot signature             = 0x%.8x\n", shrmem.bootSig);
+    printf("Volume ID                  = 0x%.8x\n", shrmem.volID);
+    printf("Volume label               = %s\n", shrmem.volLabel);
+    printf("File system type           = %s\n", shrmem.fileSysTyp);
 
     return 0;
 }

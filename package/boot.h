@@ -2,15 +2,21 @@
 #define  BOOT_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
 #define BYTES_TO_READ_IN_BOOT_SECTOR 62
 
 
-FILE* FILE_SYSTEM_ID;
+#define SHMKEY  2113
+#define SHMSIZE 500
 
-typedef struct boot {
-    int mostSignificantBits;
-    int leastSignificantBits;
+
+struct SharedMemory
+{
+    int fildes;
+    char * mode;
     int bytesPerSector;
     int sectorsPerCluster;
     int numResSector;
@@ -25,14 +31,21 @@ typedef struct boot {
     int volID;
     char volLabel[12];
     char fileSysTyp[9];
+};
 
-} boot_t;
+struct SharedMemory shrmem;
+
+FILE* FILE_SYSTEM_ID;
+
+void shl_shareMemoryGet();
+void shl_shareMemorySet();
 
 int getByte( unsigned char* buf, int index );
 int getWord( unsigned char* buf, int index );
 int getDWord( unsigned char* buf, int index );
 
-boot_t readBootSector();
+int main();
+//boot_t readBootSector();
 
 //void pbs();
 

@@ -1,26 +1,68 @@
 #include "pfe.h"
 #include "fatSupport.h"
-#include "boot.h"
+#include <unistd.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+
+void shl_shareMemoryGet(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0444)) < 0 )
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL)
+    {
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    memcpy(&shrmem, pointer, sizeof(struct SharedMemory));
+
+}
+
+
+void shl_shareMemorySet(){
+    int shm_ID = 0;
+    void *pointer = NULL;
+
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0666)) < 0)
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL){
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    memcpy(pointer, &shrmem, sizeof(struct SharedMemory));
+
+}
+
 
 int main(int argc, char const **argv) {
-    boot_t boot;
 
+
+    shl_shareMemoryGet();
 
     long a,b;
 
     a = atoi(argv[1]);
     b = atoi(argv[2]);
 
-    FILE_SYSTEM_ID = fopen("floppy1", "r+");
+
+    FILE_SYSTEM_ID = fdopen(shrmem.fildes, "r+");
     setFSID(FILE_SYSTEM_ID);
+    setBPS(shrmem.bytesPerSector);
+
 
     if (FILE_SYSTEM_ID == NULL)
     {
         printf("Could not open the floppy drive or image.\n");
         exit(1);
     }
-
-    boot = readBootSector();
 
 
     unsigned char* buf;

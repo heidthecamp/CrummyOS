@@ -19,27 +19,40 @@
 
 #define SHL_TOK_DELIM " \t\r\n\a"
 
+FILE * FILE_SYSTEM_ID;
 
-struct SharedMemory
-{
-    int BYTES_PERSECTOR;
+typedef struct SharedMemory{
     int fildes;
-};
+    char * mode;
+    int bytesPerSector;
+    int sectorsPerCluster;
+    int numResSector;
+    int numFat;
+    int maxRootDirEnt;
+    int totSectCount;
+    int sectPerFat;
+    int sectPerTrack;
+    int numHead;
+    int totSectCount4Fat;
+    int bootSig;
+    int volID;
+    char volLabel[12];
+    char fileSysTyp[9];
+}SHR_MEM;
 
+struct SharedMemory shrmem;
 
 const int shl_in_bufsize = 1024;
 const int shl_tok_bufsize = 64;
 
 
-void setSharedMemory(SharedMemory *sharedmem){
-    sharedmem->BYTES_PERSECTOR = 62;
-    sharedmem->fildes =
+void setSharedMemory(){
 }
 
 void shl();
 void shl_shareMemoryInit();
 void shl_shareMemoryGet();
-void shl_shareMemorySet(char *toShare);
+void shl_shareMemorySet();
 char *input();
 char **parse(char *line);
 int shl_launcher(char **);

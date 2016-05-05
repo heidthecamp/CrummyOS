@@ -3,16 +3,57 @@
 int main(int argc, char const **argv) {
     bool run = true;
 
+
     shl_shareMemoryInit();
 
-    shl_shareMemorySet("Test");
+    shl_shareMemorySet(shrmem);
 
-    shl_shareMemoryGet();
+    printMem(shrmem);
 
     shl();
 
+
+
     return 0;
 }
+
+
+printMem()
+{
+//    int fildes;
+    printf("%i\n", shrmem.fildes);
+//    char *mode;
+    printf("%s\n", shrmem.mode);
+//    int bytesPerSector;
+    printf("Bytes sector: %i\n", shrmem.bytesPerSector);
+//    int sectorsPerCluster;
+    printf("Bytes sector: %i\n", shrmem.sectorsPerCluster);
+//    int numResSector;
+    printf("Bytes sector: %i\n", shrmem.numResSector);
+//    int numFat;
+    printf("Bytes sector: %i\n", shrmem.numFat);
+//    int maxRootDirEnt;
+    printf("Bytes sector: %i\n", shrmem.maxRootDirEnt);
+//    int totSectCount;
+    printf("Bytes sector: %i\n", shrmem.totSectCount);
+//    int sectPerFat;
+    printf("Bytes sector: %i\n", shrmem.sectPerFat);
+//    int sectPerTrack;
+    printf("Bytes sector: %i\n", shrmem.sectPerTrack);
+//    int numHead;
+    printf("Bytes sector: %i\n", shrmem.numHead);
+//    int totSectCount4Fat;
+    printf("Bytes sector: %i\n", shrmem.totSectCount4Fat);
+//    int bootSig;
+    printf("Bytes sector: %i\n", shrmem.bootSig);
+//    int volID;
+    printf("Bytes sector: %i\n", shrmem.volID);
+//    char volLabel[12];
+    printf("Bytes sector: %s\n", shrmem.volLabel);
+//    char fileSysTyp[9];
+    printf("Bytes sector: %s\n", shrmem.fileSysTyp);
+}
+
 
 void shl(){
     char *line;
@@ -26,6 +67,10 @@ void shl(){
 
         free(line);
         free(args);
+
+        shl_shareMemoryGet();
+
+        printMem(shrmem);
     }
 }
 
@@ -38,11 +83,11 @@ void shl_shareMemoryInit(){
         exit(EXIT_FAILURE);
     }
 
-    else
-        printf("\nSHM segment has been created.\n");
+    //else
+    //    printf("\nSHM segment has been created.\n");
 }
 
-void shl_shareMemorySet(char * toShare){
+void shl_shareMemorySet(){
     int shm_ID = 0;
     void *pointer = NULL;
 
@@ -51,24 +96,26 @@ void shl_shareMemorySet(char * toShare){
         perror("Error getting SHM segment.");
         exit(-1);
     }
-    else
-        printf("\nSHM segment has been found.\n");
+    //else
+    //    printf("\nSHM segment has been found.\n");
 
     if ((pointer = shmat(shm_ID, NULL, 0)) == NULL){
         perror("Error including SHM address space.");
         exit(0);
     }
-    else
-        printf("Allocating SHM to my address space.\n");
+    //else
+    //    printf("Allocating SHM to my address space.\n");
     printf("Copying message into shaged memory...\n");
-    memcpy(pointer, toShare, strlen(toShare) + 1);
+    memcpy(pointer, &shrmem, sizeof(struct SharedMemory));
 
+    /*
     if (shmdt(pointer) < 0){
         perror("Error deallocating shared memory.");
         exit(-1);
     }
     else
         printf("SHM has been deallocated.\n");
+    */
 }
 
 void shl_shareMemoryGet(){
@@ -79,18 +126,23 @@ void shl_shareMemoryGet(){
         perror("Error getting SHM segment.");
         exit(-1);
     }
-    else
-        printf("\nSHM segment has been found.\n");
+    //else
+    //    printf("\nSHM segment has been found.\n");
     if ((pointer = shmat(shm_ID, NULL, 0)) == NULL)
     {
         perror("Error including SHM address space.");
         exit(0);
     }
-    else
-        printf("Allocating SHM to my address space.\n");
+    //else
+    //    printf("Allocating SHM to my address space.\n");
 
-    printf("Fetching message from shared memory:\n");
-    sprintf("\n%s\n", (char*) pointer);
+    //printf("Fetching message from shared memory:\n");
+    memcpy(&shrmem, pointer, sizeof(struct SharedMemory));
+
+
+
+
+    /*
     if (shmdt(pointer) < 0)
     {
         perror("Error deallocating shared memory.");
@@ -98,7 +150,7 @@ void shl_shareMemoryGet(){
     }
     else
         printf("SHM has been deallovated.\n");
-
+    */
 }
 
 
@@ -175,6 +227,31 @@ int shl_help(char **args){
 }
 
 int shl_exit(char **args){
+    int shm_ID = 0;
+    void *pointer = NULL;
+    if ((shm_ID = shmget(SHMKEY, SHMSIZE, 0444)) < 0 )
+    {
+        perror("Error getting SHM segment.");
+        exit(-1);
+    }
+    else
+        printf("\nSHM segment has been found.\n");
+    if ((pointer = shmat(shm_ID, NULL, 0)) == NULL)
+    {
+        perror("Error including SHM address space.");
+        exit(0);
+    }
+    else
+        printf("Allocating SHM to my address space.\n");
+
+
+    if (shmdt(pointer) < 0){
+        perror("Error deallocating shared memory.");
+        exit(-1);
+    }
+    else
+        printf("SHM has been deallocated.\n");
+
     exit(EXIT_SUCCESS);
 }
 
